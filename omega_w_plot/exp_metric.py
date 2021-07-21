@@ -10,21 +10,21 @@ params = {
     'Omega_M_0': 0.3,
     'Omega_R_0': 6e-5,
     'V0': 2.186,
-    'm': 80,
+    'm': 50,
     'r0': 0,
     'alpha': np.sqrt(2),
     'x_p_init': 0.0,
     'x_t_init': 0.0,
     'y_1_init': 1e-5,
-    'r_init_multiplier': 1,
+    'r_init': 0,
     'beta': 1000,
     'cosmo_constant': 0,
     'f0': 1,
 }
 
-x_range = [-1, -6]
+x_range = [-2, -6]
 colors = ['red', 'blue', 'green']
-beta_range=[0, 300, 1000, 3000]
+beta_range=[100, 300, 1000, 3000]
 
 fig, axs = plt.subplots(2, 2)
 for m, beta in enumerate(beta_range):
@@ -57,7 +57,7 @@ for m, beta in enumerate(beta_range):
                 delta_phi_n = j
                 break
         axs[int(np.floor(m/2)), m%2].plot(w, omega, label=r"$x_r = x_{{\theta}} = 10^{{{}}}$".format(x) +'\n dSB: '+"{:.2f}".format(min(c.get_de_sitter_bound())), color=colors[i])
-        if delta_phi_n>0: axs[int(np.floor(m/2)), m%2].plot(w[delta_phi_n], omega[delta_phi_n], 'go', color='black')
+        if delta_phi_n>0: axs[int(np.floor(m/2)), m%2].plot(w[delta_phi_n], omega[delta_phi_n], 'go', color=colors[i], linewidth=5, markersize=14)
     #plt.xlim([-1.02,  1.02])
     #plt.ylim([-0.05, 1.05])
     #cur_uni = Ellipse(xy=(-1, 0.7), width=0.065, height=0.02, 
@@ -67,7 +67,7 @@ for m, beta in enumerate(beta_range):
     #axs[int(np.floor(m/2)), m%2].xlabel(r'$w_{\phi}$')
     #axs[int(np.floor(m/2)), m%2].ylabel(r'$\Omega_{\phi}$')
     axs[int(np.floor(m/2)), m%2].set_ylim([-0.02, 1.02])
-    axs[int(np.floor(m/2)), m%2].set_xlim([-1.02, -0.6])
+    axs[int(np.floor(m/2)), m%2].set_xlim([-1.01, -0.8])
     axs[int(np.floor(m/2)), m%2].set_title(r'$\beta={{{}}}$'.format(params['beta']))
     
    

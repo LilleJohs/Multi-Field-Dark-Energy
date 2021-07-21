@@ -34,8 +34,10 @@ class MultiFieldDarkEnergy():
         self.gamma = gamma 
 
         if self.potential == 'spinning' or self.potential == 'exp_spinning':
-            phi = self.params['r_init']
-            #phi = self.params['r0'] * self.params['r_init_multiplier']
+            if metric == 'exp':
+                phi = self.params['r_init']
+            else:
+                phi = self.params['r0'] * self.params['r_init_multiplier']
             theta = 0
             x_p = self.params['x_p_init']
             y_1 = self.params['y_1_init']
