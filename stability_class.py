@@ -126,7 +126,7 @@ class MultiFieldDarkEnergy():
         return dydt
 
     def run_background_eq_of_motion(self):
-        sol = solve_ivp(fun = self.background, t_span = (self.N_min, self.N_max), y0 = self.y0, rtol=1.e-11)
+        sol = solve_ivp(fun = self.background, t_span = (self.N_min, self.N_max), y0 = self.y0, rtol=1.e-10, atol=1.e-10)
         self.sol = sol
 
     def get_de_sitter_bound(self):
@@ -280,7 +280,7 @@ class MultiFieldDarkEnergy():
         #axes[1].plot(N, self.get_eq_of_state(), label=r'$w$')
         axes[1].plot(N, self.get_de_sitter_bound(), label=r'De Sitter Bound')
         axes[1].plot(N, np.ones(len(N)), label=r'Lower Bound')
-        #axes[1].plot(N, H, label=r'H')
+        axes[1].plot(N, H, label=r'H')
         axes[1].set_yscale('log')
         axes[1].legend()
 
@@ -290,16 +290,16 @@ class MultiFieldDarkEnergy():
             axes[0].plot(N, r_eq, label=r'$r_{eq}$')
         #r_i = (self.params['p']*self.params['alpha']**2*self.params['V0']*exp(-self.params['alpha']*theta)/(6*self.params['m']**2))**(1/(self.params['p']+2))
         axes[0].plot(N, phi, label=r'$r$')
-        
+        #axes[0].plot(N, np.abs(dot_phi/H), label=r"$r'$")
         axes[0].plot(N, self.params['r0']*np.ones(len(N)),label=r'$r_0$')
         #axes[0].plot(N, r_i, label=r'$r_i$')
-        #axes[0].plot(N, dot_phi, label=r'$\dot{\phi}$')
-        #axes[0].set_yscale('log')
+        #axes[0].plot(N, x_p, label=r'$x_r$')
+        axes[0].set_yscale('log')
         axes[0].legend()
 
         axes[1].plot(N, theta, label=r'$\theta$')
-        axes[1].plot(N, dot_theta, label=r'$\dot{\theta}$')
-        axes[1].set_yscale('log')
+        axes[1].plot(N, dot_theta/H, label=r"$\theta'$")
+        #axes[1].set_yscale('log')
         #fig.tight_layout()
         axes[1].legend()
 
@@ -337,7 +337,17 @@ class MultiFieldDarkEnergy():
         plt.figure()
         plt.plot(N, k1, label='k1')
         plt.plot(N, k2, label='k2')
-        plt.plot(N, k3, label='k3')
+        plt.plot(N, np.abs(k3), label='|k3|')
+        plt.yscale('log')
+        plt.legend()
+        #plt.yscale('log')
+
+        plt.figure()
+        plt.plot(N, V, label='V')
+        plt.plot(N, phi * np.exp(theta * self.params['alpha']), label=r'$r e^{\theta \alpha}$')
+        plt.legend()
+        plt.figure()
+        plt.plot(N, np.log(1/(1.18*10**(-61)*H)), label='log(M/H)')
         plt.legend()
         #plt.yscale('log')
         plt.show()

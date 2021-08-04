@@ -6,9 +6,17 @@ import numpy as np
 from numpy import sqrt
 from matplotlib.patches import Ellipse
 
+plt.rc('xtick',labelsize=16)
+plt.rc('ytick',labelsize=16)
+plt.rc('mathtext', fontset='stix')
+plt.rc('font', family='STIXGeneral')
+plt.rc('font', size=15)
+plt.rc('figure', autolayout=True)
+plt.rc('axes', titlesize=16, labelsize=17)
+plt.rc('lines', linewidth=2, markersize=6)
+plt.rc('legend', fontsize=15)
+
 params = {
-    'Omega_M_0': 0.3,
-    'Omega_R_0': 6e-5,
     'V0': 2.186,
     'm': 50,
     'r0': 0,
@@ -36,7 +44,7 @@ for m, beta in enumerate(beta_range):
         N_max = 14
 
         if beta >= 1000:
-            N_max=24
+            N_max=26
 
         c = MultiFieldDarkEnergy(metric='exp', potential='exp_spinning', params=params, N_min = 0, N_max = N_max, gamma=1)
         c.run_background_eq_of_motion()
@@ -77,5 +85,6 @@ axs[1, 0].set_xlabel(r'$w_{\phi}$')
 axs[1, 1].set_xlabel(r'$w_{\phi}$')
 axs[0, 0].set_ylabel(r'$\Omega_{\phi}$')
 axs[1, 0].set_ylabel(r'$\Omega_{\phi}$')
-#plt.savefig('beta_init.pdf', bbox_inches = 'tight')
+fig.set_size_inches(7, 7)
+
 plt.show()

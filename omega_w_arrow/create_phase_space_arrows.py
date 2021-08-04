@@ -4,7 +4,17 @@ from stability_class import MultiFieldDarkEnergy
 import matplotlib.pyplot as plt
 import numpy as np
 from numpy import sqrt
-from matplotlib.patches import Ellipse
+from matplotlib.patches import ConnectionPatch
+
+plt.rc('xtick',labelsize=16)
+plt.rc('ytick',labelsize=16)
+plt.rc('mathtext', fontset='stix')
+plt.rc('font', family='STIXGeneral')
+plt.rc('font', size=15)
+plt.rc('figure', autolayout=True)
+plt.rc('axes', titlesize=16, labelsize=17)
+plt.rc('lines', linewidth=2, markersize=6)
+plt.rc('legend', fontsize=15)
 
 params = {
     'V0': 2.186,
@@ -46,8 +56,8 @@ def make_arrows(w_list, omega_list, params):
 
 num = 9
 
-red_box_x = np.array([[-1, -0.93, -0.93, -1, -1], [-1, -0.8, -0.8, -1, -1]])
-red_box_y = np.array([[0.93, 0.93, 1, 1, 0.93] , [0.8, 0.8, 1, 1, 0.8]])
+red_box_x = np.array([[-1.005, -0.925], [-1.01, -0.79]])
+red_box_y = np.array([[0.925, 1.005] , [0.79, 1.01]])
 
 w_low = [-0.93, -0.8]
 
@@ -67,6 +77,8 @@ for i, p in enumerate(p_range):
     axs[0, i].quiver(w_list, omega_list, arrow_x, arrow_y)
     axs[0, i].plot(w_eq, 1, 'go', color='blue')
     axs[0, i].set_title(r'$p={{{}}}$'.format(p))
+    axs[0, i].set_xlim(red_box_x[i, :])
+    axs[0, i].set_ylim(red_box_y[i, :])
     w_list = np.linspace(start=-0.99, stop=0.95, num=num)
     omega_list = np.linspace(start=0.01, stop=0.99, num=num)
     arrow_x, arrow_y = make_arrows(w_list, omega_list, params)
@@ -74,9 +86,18 @@ for i, p in enumerate(p_range):
     if i == 0:
         axs[1, i].set_ylabel(r'$\Omega_{\phi}$')
     axs[1, i].quiver(w_list, omega_list, arrow_x, arrow_y)
-    axs[1, i].plot(red_box_x[i, :], red_box_y[i, :], c='r')
+    axs[1, i].fill_between((red_box_x[i, 0], red_box_x[i, 1]), red_box_y[i, 0], red_box_y[i, 1], facecolor='red', alpha=0.2)
+    
+    con1 = ConnectionPatch(xyA=(red_box_x[i, 0], red_box_y[i, 0]), coordsA= axs[0, i].transData, 
+                       xyB=(red_box_x[i, 0], red_box_y[i, 0]), coordsB= axs[1, i].transData, color = 'red')
+    fig.add_artist(con1)
+
+    con2 = ConnectionPatch(xyA=(red_box_x[i, 1], red_box_y[i, 0]), coordsA= axs[0, i].transData, 
+                       xyB=(red_box_x[i, 1], red_box_y[i, 0]), coordsB= axs[1, i].transData, color = 'red')
+    fig.add_artist(con2)
 #axs[1].plot(w_eq, 1, 'go', color='blue')
 
 #plt.savefig('p_init_arrow.pdf', bbox_inches = 'tight')
+fig.set_size_inches(7, 7)
 
 plt.show()

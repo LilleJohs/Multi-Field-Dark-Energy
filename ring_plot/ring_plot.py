@@ -21,16 +21,19 @@ params = {
     'cosmo_constant': 0
 }
 
-r_init_ranges = [0.2, 8]
+r_init_ranges = [0.2, 16]
 for i, r_init in enumerate(r_init_ranges):
     params['r_init_multiplier'] = r_init
-    c = MultiFieldDarkEnergy(metric='r_p', potential='exp_spinning', params=params, N_min = 0, N_max = 10, gamma=1)
+    N_max = 8
+    if i == 0:
+        N_max = 8
+    c = MultiFieldDarkEnergy(metric='r_p', potential='exp_spinning', params=params, N_min = 0, N_max = N_max, gamma=1)
     c.run_background_eq_of_motion()
     phi = c.sol['y'][3]
     theta = c.sol['y'][4]
 
     p = params['p']
-    req = np.power(p*params['alpha']**2 * 2.15*np.exp(-params['alpha']*theta)/(6*params['m']**2), 1/(2+p))
+    req = np.power(p*params['alpha']**2 * params['V0'] * np.exp(-params['alpha']*theta)/(6*params['m']**2), 1/(2+p))
 
     plt.polar(theta/30, phi)
 plt.polar(np.linspace(0, 2*pi, 100), np.ones(100)*params['r0'], label=r'$r_0$')
@@ -40,4 +43,14 @@ plt.legend()
 plt.grid(True)
 plt.box(on=None)
 plt.xticks([])
+
+plt.rc('xtick',labelsize=16)
+plt.rc('ytick',labelsize=16)
+plt.rc('mathtext', fontset='stix')
+plt.rc('font', family='STIXGeneral')
+plt.rc('font', size=15)
+plt.rc('figure', autolayout=True)
+plt.rc('axes', titlesize=16, labelsize=17)
+plt.rc('lines', linewidth=2, markersize=6)
+plt.rc('legend', fontsize=15)
 plt.show()

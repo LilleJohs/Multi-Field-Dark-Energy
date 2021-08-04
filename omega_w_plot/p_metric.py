@@ -6,6 +6,17 @@ import numpy as np
 from numpy import sqrt
 from matplotlib.patches import Ellipse
 
+plt.rc('xtick',labelsize=16)
+plt.rc('ytick',labelsize=16)
+plt.rc('mathtext', fontset='stix')
+plt.rc('font', family='STIXGeneral')
+plt.rc('font', size=15)
+plt.rc('figure', autolayout=True)
+plt.rc('axes', titlesize=16, labelsize=17)
+plt.rc('lines', linewidth=2, markersize=6)
+plt.rc('legend', fontsize=15)
+plt.rc('text', usetex=True)
+
 params = {
     'Omega_M_0': 0.3,
     'Omega_R_0': 6e-5,
@@ -35,7 +46,7 @@ for m, p in enumerate(p_range):
         print(p, x)
         N_max = 12
         if p==2: N_max=50
-        elif p==1: N_max=40
+        elif p==1: N_max=70
         c = MultiFieldDarkEnergy(metric='r_p', potential='exp_spinning', params=params, N_min = 0, N_max = N_max, gamma=1)
         c.run_background_eq_of_motion()
         #c.x_y_phase_plot()
@@ -54,7 +65,7 @@ for m, p in enumerate(p_range):
             if cur > 1:
                 delta_phi_n = j
                 break
-        axs[int(np.floor(m/2)), m%2].plot(w, omega, label=r"$x_r = x_{{\theta}} = 10^{{{}}}$".format(x) +'\n dSB: '+"{:.2f}".format(min(c.get_de_sitter_bound())), color=colors[i])
+        axs[int(np.floor(m/2)), m%2].plot(w, omega, label=r"$x_r = x_{{\theta}} = 10^{{{}}}$".format(x) +'\n dSB: '+r"${{{:.2f}}}$".format(min(c.get_de_sitter_bound())), color=colors[i])
         if delta_phi_n>0: axs[int(np.floor(m/2)), m%2].plot(w[delta_phi_n], omega[delta_phi_n], 'go', color=colors[i], linewidth=5, markersize=14)
     #plt.xlim([-1.02,  1.02])
     #plt.ylim([-0.05, 1.05])
@@ -66,7 +77,7 @@ for m, p in enumerate(p_range):
     #axs[int(np.floor(m/2)), m%2].ylabel(r'$\Omega_{\phi}$')
     axs[int(np.floor(m/2)), m%2].set_xlim([-1.01, -0.8])
     axs[int(np.floor(m/2)), m%2].set_ylim([-0.02, 1.02])
-    axs[int(np.floor(m/2)), m%2].set_title(r'$f(r) =r^{{{}}}$'.format(params['p']))
+    axs[int(np.floor(m/2)), m%2].set_title(r'$f(r) =|r|^{{{}}}$'.format(params['p']))
     
     #axs[int(np.floor(m/2)), m%2].grid()
     axs[int(np.floor(m/2)), m%2].legend()
@@ -75,5 +86,6 @@ axs[1, 0].set_xlabel(r'$w_{\phi}$')
 axs[1, 1].set_xlabel(r'$w_{\phi}$')
 axs[0, 0].set_ylabel(r'$\Omega_{\phi}$')
 axs[1, 0].set_ylabel(r'$\Omega_{\phi}$')
-plt.savefig('p_init.pdf', bbox_inches = 'tight')
+fig.set_size_inches(7, 7)
+
 plt.show()

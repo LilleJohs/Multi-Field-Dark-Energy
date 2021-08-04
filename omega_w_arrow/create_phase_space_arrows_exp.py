@@ -4,25 +4,33 @@ from stability_class import MultiFieldDarkEnergy
 import matplotlib.pyplot as plt
 import numpy as np
 from numpy import sqrt
-from matplotlib.patches import Ellipse
+from matplotlib.patches import ConnectionPatch
+
+plt.rc('xtick',labelsize=16)
+plt.rc('ytick',labelsize=16)
+plt.rc('mathtext', fontset='stix')
+plt.rc('font', family='STIXGeneral')
+plt.rc('font', size=15)
+plt.rc('figure', autolayout=True)
+plt.rc('axes', titlesize=16, labelsize=17)
+plt.rc('lines', linewidth=2, markersize=6)
+plt.rc('legend', fontsize=15)
 
 params = {
-    'Omega_M_0': 0.3,
-    'Omega_R_0': 6e-5,
     'V0': 2.186,
-    'm': 80,
+    'm': 50,
     'r0': 0,
     'alpha': np.sqrt(2),
     'x_p_init': 0.0,
     'x_t_init': 0.0,
     'y_1_init': 1e-5,
-    'r_init_multiplier': 1,
+    'r_init': 0,
     'beta': 800,
     'f0': 1,
     'cosmo_constant': 0
 }
 
-def make_arrows(w_list, omega_list):
+def make_arrows(w_list, omega_list, params):
     arrow_x = np.zeros((len(w_list), len(omega_list)))
     arrow_y = np.zeros((len(w_list), len(omega_list)))
 
@@ -34,7 +42,7 @@ def make_arrows(w_list, omega_list):
             params['y_1_init'] = sqrt(omega*(1-w)/2)
             #params['x_t_init'] = sqrt(omega*(1+w)/2)#/sqrt(2)
             params['x_p_init'] = sqrt(omega*(1+w)/2)#/sqrt(2)
-            c = MultiFieldDarkEnergy(metric='exp', potential='exp_spinning', params=params, N_min = 0, N_max = 2, gamma=4/3)
+            c = MultiFieldDarkEnergy(metric='exp', potential='exp_spinning', params=params, N_min = 0, N_max = 2, gamma=1)
 
             c.run_background_eq_of_motion()
             #c.x_y_phase_plot()
@@ -47,29 +55,47 @@ def make_arrows(w_list, omega_list):
             arrow_y[j, i] = (omega_cur[len_N] - omega)/arrow_length
     return arrow_x, arrow_y
 
-num = 11
-w_list = np.linspace(start=-0.999, stop=-0.9, num=num)
-omega_list = np.linspace(start=0.9, stop=0.9999, num=num)
-arrow_x, arrow_y = make_arrows(w_list, omega_list)
 
-red_box_x = [-1, -0.9, -0.9, -1, -1]
-red_box_y = [0.9, 0.9, 1, 1, 0.9]
+num = 9
 
-fig, axs = plt.subplots(2)
-axs[0].set_xlabel(r'$w_{\phi}$')
-axs[0].set_ylabel(r'$\Omega_{\phi}$')
-axs[0].quiver(w_list, omega_list, arrow_x, arrow_y)
-#axs[0].plot(w_eq, 1, 'go', color='blue')
+red_box_x = np.array([[-1.003, -0.895], [-1.003, -0.945]])
+red_box_y = np.array([[0.895, 1.003] , [0.945, 1.003]])
 
-w_list = np.linspace(start=-0.99, stop=0.95, num=num)
-omega_list = np.linspace(start=0.01, stop=0.99, num=num)
-arrow_x, arrow_y = make_arrows(w_list, omega_list)
-axs[1].set_xlabel(r'$w_{\phi}$')
-axs[1].set_ylabel(r'$\Omega_{\phi}$')
-axs[1].quiver(w_list, omega_list, arrow_x, arrow_y)
-axs[1].plot(red_box_x, red_box_y, c='r')
+w_low = [-0.9, -0.95]
+
+beta_range = [400, 800]
+fig, axs = plt.subplots(2, 2)
+for i, beta in enumerate(beta_range):
+    params['beta'] = beta
+
+    w_list = np.linspace(start=-0.999, stop=w_low[i], num=num)
+    omega_list = np.linspace(start=np.abs(w_low[i]), stop=0.9999, num=num)
+    arrow_x, arrow_y = make_arrows(w_list, omega_list, params)
+    if i == 0:
+        axs[0, i].set_ylabel(r'$\Omega_{\phi}$')
+    axs[0, i].quiver(w_list, omega_list, arrow_x, arrow_y)
+    axs[0, i].set_title(r'$\beta={{{}}}$'.format(beta))
+    axs[0, i].set_xlim(red_box_x[i, :])
+    axs[0, i].set_ylim(red_box_y[i, :])
+    w_list = np.linspace(start=-0.99, stop=0.95, num=num)
+    omega_list = np.linspace(start=0.01, stop=0.99, num=num)
+    arrow_x, arrow_y = make_arrows(w_list, omega_list, params)
+    axs[1, i].set_xlabel(r'$w_{\phi}$')
+    if i == 0:
+        axs[1, i].set_ylabel(r'$\Omega_{\phi}$')
+    axs[1, i].quiver(w_list, omega_list, arrow_x, arrow_y)
+    axs[1, i].fill_between((red_box_x[i, 0], red_box_x[i, 1]), red_box_y[i, 0], red_box_y[i, 1], facecolor='red', alpha=0.2)
+    
+    con1 = ConnectionPatch(xyA=(red_box_x[i, 0], red_box_y[i, 0]), coordsA= axs[0, i].transData, 
+                       xyB=(red_box_x[i, 0], red_box_y[i, 0]), coordsB= axs[1, i].transData, color = 'red')
+    fig.add_artist(con1)
+
+    con2 = ConnectionPatch(xyA=(red_box_x[i, 1], red_box_y[i, 0]), coordsA= axs[0, i].transData, 
+                       xyB=(red_box_x[i, 1], red_box_y[i, 0]), coordsB= axs[1, i].transData, color = 'red')
+    fig.add_artist(con2)
 #axs[1].plot(w_eq, 1, 'go', color='blue')
 
 #plt.savefig('p_init_arrow.pdf', bbox_inches = 'tight')
+fig.set_size_inches(7, 7)
 
 plt.show()
