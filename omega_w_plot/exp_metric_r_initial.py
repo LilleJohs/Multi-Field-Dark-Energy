@@ -3,8 +3,9 @@ sys.path.append("..")
 from stability_class import MultiFieldDarkEnergy
 import matplotlib.pyplot as plt
 import numpy as np
-from numpy import sqrt
-from matplotlib.patches import Ellipse
+from matplotlib.colors import ListedColormap
+import seaborn as sns
+import matplotlib.colors as mcolors
 
 plt.rc('xtick',labelsize=16)
 plt.rc('ytick',labelsize=16)
@@ -31,12 +32,14 @@ params = {
 }
 
 x_range = [-5, 0, 5]
-colors = ['red', 'blue', 'green']
+colormap = ListedColormap(sns.cubehelix_palette(10, reverse = False).as_hex())
+normalize = mcolors.Normalize(vmin=np.min(x_range)-3, vmax=np.max(x_range)+3)
 beta_range=[100, 300, 1000, 3000]
 
 fig, axs = plt.subplots(2, 2)
 for m, beta in enumerate(beta_range):
     for i, x in enumerate(x_range):
+        color = colormap(normalize(x_range[i]))
         params['r_init'] = x/beta
         params['beta'] = beta
         N_max = 14
@@ -60,8 +63,8 @@ for m, beta in enumerate(beta_range):
             if cur > 1:
                 delta_phi_n = j
                 break
-        axs[int(np.floor(m/2)), m%2].plot(w, omega, label=r"$\beta r_i = {{{}}}$".format(x) +'\n dSB: '+"{:.2f}".format(min(c.get_de_sitter_bound())), color=colors[i])
-        if delta_phi_n>0: axs[int(np.floor(m/2)), m%2].plot(w[delta_phi_n], omega[delta_phi_n], 'go', color=colors[i], linewidth=5, markersize=14)
+        axs[int(np.floor(m/2)), m%2].plot(w, omega, label=r"$\beta r_i = {{{}}}$".format(x) +'\n dSB: '+"{:.2f}".format(min(c.get_de_sitter_bound())), color=color)
+        if delta_phi_n>0: axs[int(np.floor(m/2)), m%2].plot(w[delta_phi_n], omega[delta_phi_n], 'go', color=color, linewidth=5, markersize=14)
     #plt.xlim([-1.02,  1.02])
     #plt.ylim([-0.05, 1.05])
     #cur_uni = Ellipse(xy=(-1, 0.7), width=0.065, height=0.02, 

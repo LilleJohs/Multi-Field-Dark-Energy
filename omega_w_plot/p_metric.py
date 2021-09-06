@@ -3,8 +3,9 @@ sys.path.append("..")
 from stability_class import MultiFieldDarkEnergy
 import matplotlib.pyplot as plt
 import numpy as np
-from numpy import sqrt
-from matplotlib.patches import Ellipse
+from matplotlib.colors import ListedColormap
+import seaborn as sns
+import matplotlib.colors as mcolors
 
 plt.rc('xtick',labelsize=16)
 plt.rc('ytick',labelsize=16)
@@ -31,15 +32,19 @@ params = {
     'p': 3,
     'cosmo_constant': 0
 }
-
+        
 x_range = [-2, -6]
-colors = ['red', 'blue', 'green']
+colormap = ListedColormap(sns.cubehelix_palette(10, reverse = False).as_hex())
+normalize = mcolors.Normalize(vmin=-8, vmax=2)
+
 p_range=[0, 1, 2, 3]
 
 fig, axs = plt.subplots(2, 2)
 for m, p in enumerate(p_range):
     #print(np.floor(m/2), m%2)
     for i, x in enumerate(x_range):
+        color = colormap(normalize(x_range[1-i]))
+
         params['x_t_init'] = 10**(x)
         params['x_p_init'] = 10**(x)
         params['p'] = p
@@ -49,8 +54,6 @@ for m, p in enumerate(p_range):
         elif p==1: N_max=70
         c = MultiFieldDarkEnergy(metric='r_p', potential='exp_spinning', params=params, N_min = 0, N_max = N_max, gamma=1)
         c.run_background_eq_of_motion()
-        #c.x_y_phase_plot()
-        #c.plot_swampland_bound()
 
         print('De Sitter Bound Lowest', min(c.get_de_sitter_bound()))
         field_derivative, delta_phi = c.get_field_derivative()
@@ -65,21 +68,12 @@ for m, p in enumerate(p_range):
             if cur > 1:
                 delta_phi_n = j
                 break
-        axs[int(np.floor(m/2)), m%2].plot(w, omega, label=r"$x_r = x_{{\theta}} = 10^{{{}}}$".format(x) +'\n dSB: '+r"${{{:.2f}}}$".format(min(c.get_de_sitter_bound())), color=colors[i])
-        if delta_phi_n>0: axs[int(np.floor(m/2)), m%2].plot(w[delta_phi_n], omega[delta_phi_n], 'go', color=colors[i], linewidth=5, markersize=14)
-    #plt.xlim([-1.02,  1.02])
-    #plt.ylim([-0.05, 1.05])
-    #cur_uni = Ellipse(xy=(-1, 0.7), width=0.065, height=0.02, 
-                            #edgecolor='black', fc='black', lw=2)#, zorder=100)
-    #ax = plt.gca()
-    #ax.add_patch(cur_uni)
-    #axs[int(np.floor(m/2)), m%2].xlabel(r'$w_{\phi}$')
-    #axs[int(np.floor(m/2)), m%2].ylabel(r'$\Omega_{\phi}$')
+        axs[int(np.floor(m/2)), m%2].plot(w, omega, label=r"$x_r = x_{{\theta}} = 10^{{{}}}$".format(x) +'\n dSB: '+r"${{{:.2f}}}$".format(min(c.get_de_sitter_bound())), color=color)
+        if delta_phi_n>0: axs[int(np.floor(m/2)), m%2].plot(w[delta_phi_n], omega[delta_phi_n], 'go', color=color, linewidth=5, markersize=14)
+
     axs[int(np.floor(m/2)), m%2].set_xlim([-1.01, -0.8])
     axs[int(np.floor(m/2)), m%2].set_ylim([-0.02, 1.02])
     axs[int(np.floor(m/2)), m%2].set_title(r'$f(r) =|r|^{{{}}}$'.format(params['p']))
-    
-    #axs[int(np.floor(m/2)), m%2].grid()
     axs[int(np.floor(m/2)), m%2].legend()
 
 axs[1, 0].set_xlabel(r'$w_{\phi}$')

@@ -4,8 +4,9 @@ sys.path.append("..")
 from stability_class import MultiFieldDarkEnergy
 import matplotlib.pyplot as plt
 import numpy as np
-from shapely.geometry import Point
-from shapely.geometry.polygon import Polygon
+from matplotlib.colors import ListedColormap
+import seaborn as sns
+import matplotlib.colors as mcolors
 
 plt.rc('xtick',labelsize=16)
 plt.rc('ytick',labelsize=16)
@@ -33,14 +34,17 @@ params = {
 fig, axs = plt.subplots(2)
 
 p_ranges = [0, 1, 2]
+colormap = ListedColormap(sns.cubehelix_palette(10, reverse = False).as_hex())
+normalize = mcolors.Normalize(vmin=np.min(p_ranges)-1, vmax=np.max(p_ranges)+1)
 for i, p in enumerate(p_ranges):
+    color = colormap(normalize(p_ranges[i]))
     params['p'] = p
     c = MultiFieldDarkEnergy(metric='r_p', potential='exp_spinning', params=params, N_min = 0, N_max = 10, gamma=1)
     c.run_background_eq_of_motion()
     N = c.sol['t']-8
     Vnn, omega = c.get_turning_rate()
     M_eff_s, cs_s = c.get_M_eff_squared()
-    axs[0].plot(N, cs_s, label=r'$p = {{{}}}$'.format(p))
+    axs[0].plot(N, cs_s, label=r'$p = {{{}}}$'.format(p), color=color)
 axs[0].set_xlim([-8, 2])
 axs[0].set_ylabel(r'$c_s^2$')
 axs[0].legend()
@@ -62,14 +66,17 @@ params = {
 }
 
 beta_ranges = [500, 1000, 1500]
+colormap = ListedColormap(sns.cubehelix_palette(10, reverse = False).as_hex())
+normalize = mcolors.Normalize(vmin=np.min(beta_ranges)-500, vmax=np.max(beta_ranges)+500)
 for i, beta in enumerate(beta_ranges):
+    color = colormap(normalize(beta_ranges[i]))
     params['beta'] = beta
     c = MultiFieldDarkEnergy(metric='exp', potential='exp_spinning', params=params, N_min = 0, N_max = 10, gamma=1)
     c.run_background_eq_of_motion()
     N = c.sol['t']-8
     M_eff_s, cs_s = c.get_M_eff_squared()
 
-    axs[1].plot(N, cs_s, label=r'$\beta = {{{}}}$'.format(beta))
+    axs[1].plot(N, cs_s, label=r'$\beta = {{{}}}$'.format(beta), color=color)
 axs[1].set_xlim([-8, 2])
 axs[1].set_xlabel(r'$N$')
 axs[1].set_ylabel(r'$c_s^2$')
