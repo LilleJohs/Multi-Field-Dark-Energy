@@ -16,6 +16,7 @@ plt.rc('figure', autolayout=True)
 plt.rc('axes', titlesize=16, labelsize=17)
 plt.rc('lines', linewidth=2, markersize=6)
 plt.rc('legend', fontsize=15)
+plt.rc('text', usetex=True)
 
 params = {
     'V0': 2.186,

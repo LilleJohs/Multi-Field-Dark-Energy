@@ -1,15 +1,19 @@
 import sys
 sys.path.append("..")
 from stability_class import MultiFieldDarkEnergy
-import matplotlib.pyplot as plt
+import matplotlib.pylab as plt
 import numpy as np
-from numpy import pi
-from shapely.geometry import Point
-from shapely.geometry.polygon import Polygon
+from numpy import pi, cos, sin
 from matplotlib.colors import ListedColormap
 import seaborn as sns
 import matplotlib.colors as mcolors
 import matplotlib.cm as cm
+
+fig = plt.figure()
+ax = fig.add_subplot(1, 2, 2, projection='3d')
+r_init_ranges = [0.2, 16]
+colormap = ListedColormap(sns.cubehelix_palette(16, reverse = False).as_hex())
+normalize = mcolors.Normalize(vmin=min(r_init_ranges), vmax=max(r_init_ranges)+15)
 
 params = {
     'V0': 2.15,
@@ -19,23 +23,39 @@ params = {
     'x_p_init': 0,
     'x_t_init': 0.0,
     'y_1_init': 1e-5,
-    'r_init_multiplier': 1,
+    'r_init_multiplier': 4,
     'p': 2,
-    'cosmo_constant': 0
+    'cosmo_constant': 0,
+    'metric': 'r_p',
+    'potential': 'spinning'
 }
 
-r_init_ranges = [0.2, 16]
-colormap = ListedColormap(sns.cubehelix_palette(16, reverse = False).as_hex())
-normalize = mcolors.Normalize(vmin=min(r_init_ranges), vmax=max(r_init_ranges)+15)
-fig, ax = plt.subplots(subplot_kw={'projection': 'polar'})
+c = MultiFieldDarkEnergy(params=params, N_min = 0, N_max = 7.03, gamma=1)
+r = np.linspace(0, 0.005, 100)
+theta = np.linspace(0, 4*pi, 100)
+R, THETA = np.meshgrid(r, theta)
+Z, _, _ = c.get_V_and_diff(R, THETA)
+ax.plot_surface(R*cos(THETA), R*sin(THETA), Z, alpha=0.5, color=colormap(normalize(10*r_init_ranges[0])))
+
+c.run_background_eq_of_motion()
+phi = c.sol['y'][3]
+theta = c.sol['y'][4]
+#theta = theta * 2*pi / max(theta)
+pot, _, _ = c.get_V_and_diff(phi, theta)
+ax.plot(phi*cos(theta), phi*sin(theta), pot, label='parametric curve', linewidth=5, color=colormap(normalize(r_init_ranges[1])))
+ax.set_xticklabels([])
+ax.set_yticklabels([])
+ax.set_zlabel(r'$V \; [H_0^2M_{Pl}^2]$')
+
+ax = fig.add_subplot(1, 2, 1, projection='polar')
 for i, r_init in enumerate(r_init_ranges):
-    color = colormap(normalize(r_init) )
+    color = colormap(normalize(r_init))
     print(color)
     params['r_init_multiplier'] = r_init
     N_max = 10
     if i == 0:
         N_max = 9.9
-    c = MultiFieldDarkEnergy(metric='r_p', potential='exp_spinning', params=params, N_min = 0, N_max = N_max, gamma=1)
+    c = MultiFieldDarkEnergy(params=params, N_min = 0, N_max = N_max, gamma=1)
     c.run_background_eq_of_motion()
     phi = c.sol['y'][3]
     theta = c.sol['y'][4]
@@ -47,14 +67,14 @@ for i, r_init in enumerate(r_init_ranges):
             break
 
     p = params['p']
-    req = np.power(p*params['alpha']**2 * params['V0'] * np.exp(-params['alpha']*theta)/(6*params['m']**2), 1/(2+p))
+    req = np.power(p*params['alpha']**2 /(6*params['m']**2*(params['V0'] - params['alpha']*theta)), 1/(2+p))
     print(point, len(omega_p))
     ax.plot(theta/30, phi, color=color)
     ax.plot(theta[point]/30, phi[point], 'go', color=color, linewidth=5, markersize=14)
 ax.plot(np.linspace(0, 2*pi, 100), np.ones(100)*params['r0'], label=r'$r_0$')
 #plt.polar(np.linspace(0, 2*pi, 100), req*np.ones(100), label=r'$r_{eq}$', c='k', linestyle='dashed', linewidth=3)
 ax.plot(theta/30, req, label=r'$r_{eq}$', color='black', linestyle='dashed', linewidth=3)
-ax.set_rgrids([0.005,0.01], angle=280)
+ax.set_rgrids([0.004,0.008], angle=280)
 plt.legend()
 plt.grid(True)
 plt.box(on=None)

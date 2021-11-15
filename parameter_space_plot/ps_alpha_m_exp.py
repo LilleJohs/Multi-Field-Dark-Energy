@@ -16,6 +16,7 @@ plt.rc('figure', autolayout=True)
 plt.rc('axes', titlesize=16, labelsize=17)
 plt.rc('lines', linewidth=2, markersize=6)
 plt.rc('legend', fontsize=15)
+plt.rc('text', usetex=True)
 
 params = {
     'V0': 2.15,
@@ -68,7 +69,7 @@ def get_sol(params):
     
     return cur_param, np.nanmin(c.get_M_eff_squared())
 
-length = 40
+length = 200
 list_accepted = np.zeros((length, length))
 
 beta_range = np.linspace(0, 1000, length)
@@ -87,7 +88,6 @@ for j, m in enumerate(m_range):
         list_accepted[i, j], meff = cur_param
         #print(meff)
         if meff < 0 and meff_over_beta[j] == 0:
-           
             meff_over_beta[j] = beta
 
 params['beta'] = 600
@@ -96,6 +96,9 @@ axs[0].set_xlabel(r'$m \; [H_0]$')
 axs[0].set_ylabel(r'$\beta$')
 axs[0].imshow(list_accepted, origin = 'lower', extent=[np.amin(m_range), np.amax(m_range), np.amin(beta_range), np.amax(beta_range)], aspect='auto',cmap='RdGy')
 axs[0].fill_between(m_range, meff_over_beta, y2 = beta_range[length-1], color='blue', alpha=0.4)
+
+np.save('list_accepted_m_beta_exp.npy', list_accepted)
+np.save('meff_over_beta_exp.npy', meff_over_beta)
 
 alpha_range = np.linspace(0, 10, length)
 m_range = np.linspace(0, 200, length)
@@ -111,7 +114,6 @@ for j, m in enumerate(m_range):
         cur_param = get_sol(params)
 
         list_accepted[i, j], meff = cur_param
-        print(meff)
         if meff < 0 and meff_over_alpha[j] == 0:
             meff_over_alpha[j] = alpha
 
@@ -121,5 +123,9 @@ axs[1].imshow(list_accepted, origin = 'lower', extent=[np.amin(m_range), np.amax
 axs[1].fill_between(m_range, meff_over_alpha, y2 = alpha_range[length-1], color='blue', alpha=0.4)
 
 fig.set_size_inches(7, 7)
+plt.savefig('test_alpha_m_exp.pdf', bbox_inches = 'tight')
+
+np.save('list_accepted_m_alpha_exp.npy', list_accepted)
+np.save('meff_over_alpha_exp.npy', meff_over_alpha)
 
 plt.show()

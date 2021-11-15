@@ -9,7 +9,6 @@ import seaborn as sns
 import matplotlib.colors as mcolors
 import matplotlib.cm as cm
 from scipy.optimize import fsolve
-
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 plt.rc('xtick',labelsize=16)
@@ -21,6 +20,7 @@ plt.rc('figure', autolayout=True)
 plt.rc('axes', titlesize=16, labelsize=17)
 plt.rc('lines', linewidth=2, markersize=6)
 plt.rc('legend', fontsize=15)
+plt.rc('text', usetex=True)
 
 def solve_for_req(params, theta):
     func = lambda req : req**3 + 2*params['V0']/params['m']**2 * np.exp(-params['alpha'] * theta) * req - (params['V0']*params['alpha']*np.exp(-params['alpha']*theta)/(params['m']**2))**2 * params['beta']/3 * np.exp(-params['beta']*req)
@@ -38,6 +38,8 @@ params = [{
     'r_init_multiplier': 1,
     'p': 2,
     'cosmo_constant': 0,
+    'potential': 'spinning',
+    'metric': 'r_p'
 }, {
     'V0': 2.186,
     'm': 50,
@@ -49,15 +51,16 @@ params = [{
     'beta': 600,
     'r_init': 0,
     'cosmo_constant': 0,
-    'f0': 1
+    'f0': 1,
+    'potential': 'spinning',
+    'metric': 'exp'
 }]
 
 r_lim = [-5, 1]
-metric_l = ['r_p', 'exp']
-title_l = [r'$f(r)=|r|^2$', r'$f(r)=e^{\beta r}$']
+title_l = [r'$f(r)=r^2$', r'$f(r)=e^{\beta r}$']
 
 r = np.logspace(r_lim[0], r_lim[1], num=100)
-theta_times_alpha_l = np.array([[0, 1, 2, 3], [0, 1, 2, 3]])
+theta_times_alpha_l = np.array([[0, 1, 2], [0, 1, 2]])
 print(theta_times_alpha_l.shape)
 fig, axs = plt.subplots(2)
 
@@ -65,7 +68,7 @@ for j in range(2):
     colormap = ListedColormap(sns.cubehelix_palette(len(theta_times_alpha_l[j, :]), reverse = False).as_hex())
     normalize = mcolors.Normalize(vmin=np.min(theta_times_alpha_l[j, :]), vmax=np.max(theta_times_alpha_l[j, :]))
 
-    c = MultiFieldDarkEnergy(metric=metric_l[j], potential='exp_spinning', params=params[j], N_min = 0, N_max = 10, gamma=1)
+    c = MultiFieldDarkEnergy(params=params[j], N_min = 0, N_max = 10, gamma=1)
     for i, theta_times_alpha in enumerate(theta_times_alpha_l[j, :]):
         color = colormap(normalize(theta_times_alpha_l[j, i]))
         theta = theta_times_alpha / params[j]['alpha']
@@ -74,7 +77,7 @@ for j in range(2):
         de_sitter_c = sqrt(V_r**2 + f**(-1)*V_theta**2)/V
         if j==0:
             param = params[0]
-            req = np.power(param['p']*param['alpha']**2 * param['V0'] * np.exp(-param['alpha']*theta)/(6*param['m']**2), 1/(2+param['p']))
+            req = np.power(param['p']*param['alpha']**2 * (param['V0'] -param['alpha']*theta)/(6*param['m']**2), 1/(2+param['p']))
         else:
             req = solve_for_req(params[j], theta)
         axs[j].axvline(x=req, color=color, linestyle='--', linewidth=2)
@@ -102,7 +105,7 @@ for j in range(2):
     axs[j].set_xscale('log')
     axs[j].set_yscale('log')
     axs[j].set_xlabel(r'$r$')
-    axs[j].set_ylabel(r'$\nabla V / V$')
+    axs[j].set_ylabel(r'$|\nabla V| / V$')
     axs[j].set_xlim([10**(r_lim[0]), 10**(r_lim[1])])
 fig.set_size_inches(7, 7)
 plt.show()

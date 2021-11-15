@@ -16,6 +16,7 @@ plt.rc('figure', autolayout=True)
 plt.rc('axes', titlesize=16, labelsize=17)
 plt.rc('lines', linewidth=2, markersize=6)
 plt.rc('legend', fontsize=15)
+plt.rc('text', usetex=True)
 
 params = {
     'V0': 2.186,
@@ -72,7 +73,7 @@ for m, p in enumerate(p_range):
  
     axs[int(np.floor(m/2)), m%2].set_xlim([-1.01, -0.8])
     axs[int(np.floor(m/2)), m%2].set_ylim([-0.02, 1.02])
-    axs[int(np.floor(m/2)), m%2].set_title(r'$f(r) =|r|^{{{}}}$'.format(params['p']))
+    axs[int(np.floor(m/2)), m%2].set_title(r'$f(r) =r^{{{}}}$'.format(params['p']))
     #axs[int(np.floor(m/2)), m%2].axvline(x=-1, color='k', alpha=0.25)
    
     axs[int(np.floor(m/2)), m%2].legend()

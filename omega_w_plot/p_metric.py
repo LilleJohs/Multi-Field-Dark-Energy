@@ -73,7 +73,7 @@ for m, p in enumerate(p_range):
 
     axs[int(np.floor(m/2)), m%2].set_xlim([-1.01, -0.8])
     axs[int(np.floor(m/2)), m%2].set_ylim([-0.02, 1.02])
-    axs[int(np.floor(m/2)), m%2].set_title(r'$f(r) =|r|^{{{}}}$'.format(params['p']))
+    axs[int(np.floor(m/2)), m%2].set_title(r'$f(r) =r^{{{}}}$'.format(params['p']))
     axs[int(np.floor(m/2)), m%2].legend()
 
 axs[1, 0].set_xlabel(r'$w_{\phi}$')
