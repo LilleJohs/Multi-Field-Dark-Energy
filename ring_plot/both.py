@@ -9,29 +9,38 @@ import seaborn as sns
 import matplotlib.colors as mcolors
 import matplotlib.cm as cm
 
+plt.rc('xtick',labelsize=16)
+plt.rc('ytick',labelsize=16)
+plt.rc('mathtext', fontset='stix')
+plt.rc('font', family='STIXGeneral')
+plt.rc('font', size=15)
+plt.rc('figure', autolayout=True)
+plt.rc('axes', titlesize=16, labelsize=17)
+plt.rc('lines', linewidth=2, markersize=6)
+plt.rc('legend', fontsize=15)
+
 fig = plt.figure()
 ax = fig.add_subplot(1, 2, 2, projection='3d')
-r_init_ranges = [0.2, 16]
+r_init_ranges = [0.2, 8]
 colormap = ListedColormap(sns.cubehelix_palette(16, reverse = False).as_hex())
 normalize = mcolors.Normalize(vmin=min(r_init_ranges), vmax=max(r_init_ranges)+15)
 
 params = {
-    'V0': 2.15,
-    'm': 50,
+    'V0': 2.186,
+    'm': 200,
     'r0': 7*1e-4,
-    'alpha': 5*1e-3,
+    'alpha': 2*1e-3,
     'x_p_init': 0,
     'x_t_init': 0.0,
     'y_1_init': 1e-5,
     'r_init_multiplier': 4,
     'p': 2,
-    'cosmo_constant': 0,
     'metric': 'r_p',
     'potential': 'spinning'
 }
 
-c = MultiFieldDarkEnergy(params=params, N_min = 0, N_max = 7.03, gamma=1)
-r = np.linspace(0, 0.005, 100)
+c = MultiFieldDarkEnergy(params=params, N_min = 0, N_max = 7.17, gamma=1)
+r = np.linspace(0, 0.003, 100)
 theta = np.linspace(0, 4*pi, 100)
 R, THETA = np.meshgrid(r, theta)
 Z, _, _ = c.get_V_and_diff(R, THETA)
@@ -45,7 +54,9 @@ pot, _, _ = c.get_V_and_diff(phi, theta)
 ax.plot(phi*cos(theta), phi*sin(theta), pot, label='parametric curve', linewidth=5, color=colormap(normalize(r_init_ranges[1])))
 ax.set_xticklabels([])
 ax.set_yticklabels([])
-ax.set_zlabel(r'$V \; [H_0^2M_{Pl}^2]$')
+
+
+ax.set_zlabel(r'$V \; [H_0^2]$', labelpad=10)
 
 ax = fig.add_subplot(1, 2, 1, projection='polar')
 for i, r_init in enumerate(r_init_ranges):
@@ -74,19 +85,26 @@ for i, r_init in enumerate(r_init_ranges):
 ax.plot(np.linspace(0, 2*pi, 100), np.ones(100)*params['r0'], label=r'$r_0$')
 #plt.polar(np.linspace(0, 2*pi, 100), req*np.ones(100), label=r'$r_{eq}$', c='k', linestyle='dashed', linewidth=3)
 ax.plot(theta/30, req, label=r'$r_{eq}$', color='black', linestyle='dashed', linewidth=3)
-ax.set_rgrids([0.004,0.008], angle=280)
-plt.legend()
+
+#trans, _ , _ = ax.get_xaxis_text1_transform(-10)
+#ax.text(np.deg2rad(45), -0.0, r"$\theta$", transform=trans, 
+#         rotation=45-90, ha="center", va="center")
+
+ax.set_rgrids([0.0025,0.005], angle=300)
+
+label_position=ax.get_rlabel_position()
+ax.text(np.radians(label_position+45),ax.get_rmax()/2.,r'$r$',
+        rotation=-10,ha='center',va='center')
+
+trans, _ , _ = ax.get_xaxis_text1_transform(0)
+print(trans)
+ax.text(np.deg2rad(90), 0.05, r"$\theta$", transform=trans, 
+         rotation=0, ha="center", va="center")
+
+plt.legend(loc='upper right')
 plt.grid(True)
 plt.box(on=None)
 plt.xticks([])
-
-plt.rc('xtick',labelsize=16)
-plt.rc('ytick',labelsize=16)
-plt.rc('mathtext', fontset='stix')
-plt.rc('font', family='STIXGeneral')
-plt.rc('font', size=15)
-plt.rc('figure', autolayout=True)
-plt.rc('axes', titlesize=16, labelsize=17)
-plt.rc('lines', linewidth=2, markersize=6)
-plt.rc('legend', fontsize=15)
+fig.set_tight_layout(True)
+fig.set_size_inches(7, 4)
 plt.show()

@@ -24,13 +24,14 @@ params = {
     'V0': 2.186,
     'm': 50,
     'r0': 7*1e-4,
-    'alpha': 1e-3,
+    'alpha': 2*1e-3,
     'x_p_init': 0.0,
     'x_t_init': 0.0,
     'y_1_init': 1e-5,
     'r_init_multiplier': 1,
     'p': 3,
-    'cosmo_constant': 0
+    'potential': 'spinning',
+    'metric': 'r_p'
 }
         
 x_range = [-2, -6]
@@ -52,7 +53,7 @@ for m, p in enumerate(p_range):
         N_max = 12
         if p==2: N_max=50
         elif p==1: N_max=70
-        c = MultiFieldDarkEnergy(metric='r_p', potential='exp_spinning', params=params, N_min = 0, N_max = N_max, gamma=1)
+        c = MultiFieldDarkEnergy(params=params, N_min = 0, N_max = N_max, gamma=1)
         c.run_background_eq_of_motion()
 
         print('De Sitter Bound Lowest', min(c.get_de_sitter_bound()))

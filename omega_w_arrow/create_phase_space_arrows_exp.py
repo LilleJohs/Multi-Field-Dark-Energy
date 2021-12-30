@@ -21,14 +21,14 @@ params = {
     'V0': 2.186,
     'm': 50,
     'r0': 0,
-    'alpha': np.sqrt(2),
+    'alpha': 3,
     'x_p_init': 0.0,
     'x_t_init': 0.0,
     'y_1_init': 1e-5,
     'r_init': 0,
     'beta': 800,
-    'f0': 1,
-    'cosmo_constant': 0
+    'potential': 'spinning',
+    'metric': 'exp'
 }
 
 def make_arrows(w_list, omega_list, params):
@@ -43,7 +43,7 @@ def make_arrows(w_list, omega_list, params):
             params['y_1_init'] = sqrt(omega*(1-w)/2)
             #params['x_t_init'] = sqrt(omega*(1+w)/2)#/sqrt(2)
             params['x_p_init'] = sqrt(omega*(1+w)/2)#/sqrt(2)
-            c = MultiFieldDarkEnergy(metric='exp', potential='exp_spinning', params=params, N_min = 0, N_max = 2, gamma=1)
+            c = MultiFieldDarkEnergy(params=params, N_min = 0, N_max = 2, gamma=1)
 
             c.run_background_eq_of_motion()
             #c.x_y_phase_plot()
@@ -64,7 +64,7 @@ red_box_y = np.array([[0.895, 1.003] , [0.945, 1.003]])
 
 w_low = [-0.9, -0.95]
 
-beta_range = [400, 800]
+beta_range = [500, 1000]
 fig, axs = plt.subplots(2, 2)
 for i, beta in enumerate(beta_range):
     params['beta'] = beta

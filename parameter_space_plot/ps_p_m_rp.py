@@ -1,12 +1,12 @@
 import sys
 sys.path.append("..")
 
-from stability_class import MultiFieldDarkEnergy
 import matplotlib.pyplot as plt
 import numpy as np
-from shapely.geometry import Point
 from shapely.geometry.polygon import Polygon
-import multiprocessing
+from matplotlib import colors
+import seaborn as sns
+from get_sol_value import get_sol
 
 plt.rc('xtick',labelsize=16)
 plt.rc('ytick',labelsize=16)
@@ -19,102 +19,87 @@ plt.rc('lines', linewidth=2, markersize=6)
 plt.rc('legend', fontsize=15)
 plt.rc('text', usetex=True)
 
+white = '#ffffff'
+base_colors = sns.cubehelix_palette(3, reverse = False).as_hex()
+base_colors[2] = base_colors[1]
+base_colors[1] = white
+
+print(base_colors)
+cmap = colors.ListedColormap(base_colors)
+
+my_cmap = np.array(cmap(np.arange(cmap.N)))
+shaded_cmap = np.copy(my_cmap)
+shaded_cmap[:, 2] += 0.2
+shaded_cmap[1, :] = np.array([0.8, 0.8, 1, 1])
+
+combined = np.concatenate((my_cmap, shaded_cmap))
+print(combined)
+cmap = colors.ListedColormap(combined)
+
+bounds = [-0.25, 0.25, 0.75, 1.25, 1.75, 2.25, 2.75]
+norm = colors.BoundaryNorm(bounds, cmap.N)
+
 params = {
-    'V0': 2.15,
+    'V0': 2.186,
     'm': 50,
     'r0': 7*1e-4,
-    'alpha': 1e-3,
+    'alpha': 2*1e-3,
     'x_p_init': 0.0,
     'x_t_init': 0.0,
     'y_1_init': 1e-5,
     'p': 2,
     'r_init_multiplier': 1,
-    'cosmo_constant': 0,
+    'potential': 'spinning',
+    'metric': 'r_p'
 }
 
-cur_time = Polygon([(-1.05, 0.65), (-0.95, 0.75), (-0.95, 0.65), (-1.05, 0.75)])
-
-def get_sol(params):
-    c = MultiFieldDarkEnergy(metric='r_p', potential='exp_spinning', params=params, N_min = 0, N_max = 9, gamma=1)
-    c.run_background_eq_of_motion()
-
-    size = len(c.get_eq_of_state())
-
-    w = c.get_eq_of_state()
-    omega = c.get_omega_phi()
-    cur_param = 0.5
-    if min(c.get_de_sitter_bound()) < 0.5:
-        cur_param = 0
-    else:
-        for k in range(size):
-            point = Point(w[k], omega[k])
-            if cur_time.contains(point):
-                # This solution has once been in omega=0.7 w=-1
-                cur_param = 0.5
-                break
-            elif k == size-1:
-                # This solution has NEVER been in omega=0.7 w=-1
-                cur_param = 1
-    if omega[size-1] < 0.9 and w[size-1] < -0.8:
-        cur_param=-1  
-    return cur_param, np.nanmin(c.get_M_eff_squared())
-
-length = 200
+length = 100
 list_accepted = np.zeros((length, length))
 
-p_range = np.linspace(1.6, 3.5, length)
+p_range = np.linspace(1.6, 3.2, length)
 m_range = np.linspace(0, 500, length)
+print(p_range)
+print(m_range)
 meff_over_p = np.zeros(length)
-colors = ['red', 'blue']
 
 for j, m in enumerate(m_range):
-    print(j)
+    print(j, 'Mass:', m)
     for i, p in enumerate(p_range):
         params['p'] = p
         params['m'] = m
-        
-        cur_param = get_sol(params)
-        list_accepted[i, j], meff = cur_param
-        if meff < 0 and meff_over_p[j] == 0:
-            meff_over_p[j] = p
-        elif i == length-1 and meff_over_p[j] == 0:
-            meff_over_p[j] = p
+
+        #list_accepted[i, j]= get_sol(params)
 
 fig, axs = plt.subplots(2)
-axs[0].set_xlabel(r'$m [H_0]$')
+axs[0].set_xlabel(r'$m \; [H_0]$')
 axs[0].set_ylabel(r'$p$')
-axs[0].imshow(list_accepted, origin = 'lower', extent=[np.amin(m_range), np.amax(m_range), np.amin(p_range), np.amax(p_range)], aspect='auto',cmap='RdGy')
-axs[0].fill_between(m_range, meff_over_p, y2 = p_range[length-1], color='blue', alpha=0.4)
+axs[0].imshow(list_accepted, origin = 'lower', interpolation='nearest', cmap=cmap, norm=norm, extent=[np.amin(m_range), np.amax(m_range), np.amin(p_range), np.amax(p_range)], aspect='auto')
+#axs[0].imshow(list_accepted, origin = 'lower', extent=[np.amin(m_range), np.amax(m_range), np.amin(p_range), np.amax(p_range)], aspect='auto',cmap='RdGy')
+#axs[0].fill_between(m_range, meff_over_p, y2 = p_range[length-1], color='blue', alpha=0.4)
 
-np.save('list_accepted_m_p_r_p.npy', list_accepted)
-np.save('meff_over_p_r_p.npy', meff_over_p)
+#np.save('list_accepted_m_p_r_p.npy', list_accepted)
 
 params['p'] = 2
-alpha_range = np.linspace(0, 0.015, length)
+alpha_range = np.linspace(0, 0.02, length)
 m_range = np.linspace(0, 500, length)
 meff_over_alpha = np.zeros(length)
-colors = ['red', 'blue']
 
 for j, m in enumerate(m_range):
-    print(j)
+    print(j, 'Mass:', m)
     for i, alpha in enumerate(alpha_range):
         params['alpha'] = alpha
         params['m'] = m
         
         cur_param = get_sol(params)
-        list_accepted[i, j], meff = cur_param
-        if meff < 0 and meff_over_alpha[j] == 0:
-            meff_over_alpha[j] = alpha
-        elif i == length-1 and meff_over_alpha[j] == 0:
-            meff_over_alpha[j] = alpha
-axs[1].set_xlabel(r'$m [H_0]$')
-axs[1].set_ylabel(r'$\alpha$')
-axs[1].imshow(list_accepted, origin = 'lower', extent=[np.amin(m_range), np.amax(m_range), np.amin(alpha_range), np.amax(alpha_range)], aspect='auto',cmap='RdGy')
-axs[1].fill_between(m_range, meff_over_alpha, y2 = alpha_range[length-1], color='blue', alpha=0.4)
+        list_accepted[i, j] = cur_param
+axs[1].set_xlabel(r'$m \; [H_0]$')
+axs[1].set_ylabel(r'$\alpha \; [H_0^2]$')
+axs[1].imshow(list_accepted, origin = 'lower', interpolation='nearest', cmap=cmap, norm=norm, extent=[np.amin(m_range), np.amax(m_range), np.amin(alpha_range), np.amax(alpha_range)], aspect='auto')
+#axs[1].imshow(list_accepted, origin = 'lower', extent=[np.amin(m_range), np.amax(m_range), np.amin(alpha_range), np.amax(alpha_range)], aspect='auto',cmap='RdGy')
+#axs[1].fill_between(m_range, meff_over_alpha, y2 = alpha_range[length-1], color='blue', alpha=0.4)
 
 fig.set_size_inches(7, 7)
-plt.savefig('test_r_p_m_p_alpha.pdf', bbox_inches = 'tight')
+#plt.savefig('test_r_p_m_p_alpha.pdf', bbox_inches = 'tight')
 np.save('list_accepted_m_alpha_r_p.npy', list_accepted)
-np.save('meff_over_alpha_r_p.npy', meff_over_alpha)
 
 plt.show()

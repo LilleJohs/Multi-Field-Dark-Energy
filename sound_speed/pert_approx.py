@@ -36,38 +36,42 @@ params = {
 
 fig, axs = plt.subplots(2)
 
+h = 0.7
 H0_in_mpc_inv = 1/4550
 
 p_ranges = [1.8, 2.3]
 m_ranges = [400, 50]
 colormap = ListedColormap(sns.cubehelix_palette(10, reverse = False).as_hex())
 normalize = mcolors.Normalize(vmin=np.min(p_ranges)*0.95, vmax=np.max(p_ranges)*1.05)
-axs[0].set_xlim([-2, 2])
 for i, p in enumerate(p_ranges):
     color = colormap(normalize(p_ranges[i]))
     params['p'] = p
     params['m'] = m_ranges[i]
     c = MultiFieldDarkEnergy(params=params, N_min = 0, N_max = 10, gamma=1)
     c.run_background_eq_of_motion()
-
-    H = c.get_H()
-    today_i = np.absolute(H-1).argmin()
-    print('Time today:', c.sol['t'][today_i])
-    N = c.sol['t']-c.sol['t'][today_i]
-
+    N = c.sol['t']-8
     Vnn, omega = c.get_turning_rate()
-    M_eff_s, cs_s = c.get_M_eff_squared()
+    M_eff_s_over_a_s, cs_s = c.get_M_eff_squared()
     H = c.get_H()
     r = c.sol['y'][3]
-    cs_approx = (2-p+params['r0']/r * (p-1)) / (2+p-params['r0']/r * (p+1))
+    #cs_approx = (2-p+params['r0']/r * (p-1)) / (2+p-params['r0']/r * (p+1))
     a = np.exp(N)
-    axs[0].plot(N, cs_s, color=color)
-    axs[0].plot(N, cs_approx, '--', color=color)
-axs[0].set_ylabel(r'$c_s^2$')
-axs[0].legend(['Numerical', 'Approximation'])
+    M_eff_s = a**2 * M_eff_s_over_a_s 
+    #axs[0].plot(N, cs_s, label=r'$p = {{{}}}$'.format(p), color=color)
+    #axs[0].plot(N, cs_approx, '--', label=r'Approx $p = {{{}}}$'.format(p), color=color)
+    upper_bound = H0_in_mpc_inv * h * np.sqrt(M_eff_s/ cs_s)
+    lower_bound = H0_in_mpc_inv * h * H * a
+    axs[0].plot(N, upper_bound, c=color)
+    axs[0].plot(N, lower_bound, '--', c=color)
+    axs[0].fill_between(N, upper_bound / 7, lower_bound * 7, where=upper_bound / 7 > lower_bound * 7, alpha=0.4, color=color)
+axs[0].set_yscale('log')
+axs[0].set_xlim([-3, 2])
+axs[0].set_ylabel(r'$k \; [h\mathrm{Mpc}^{-1}]$')
+axs[0].legend([r'$|M_{\textrm{eff}} /c_s|$', r'$H a$'])
 axs[0].set_title(r'$f(r)=r^p$')
-axs[0].hlines(0, -2, 2, color='k', alpha=0.8)
+axs[0].hlines(0, -8, 2, color='k', alpha=0.8)
 axs[0].grid()
+
 s_map = cm.ScalarMappable(norm=normalize, cmap=colormap)
 s_map.set_array(p_ranges)
 
@@ -78,6 +82,8 @@ boundaries = np.linspace(p_ranges[0] - halfdist, p_ranges[-1] + halfdist, len(p_
 cbar = fig.colorbar(s_map, ax=axs[0], ticks = p_ranges, boundaries = boundaries, spacing='proportional')
 cbarlabel = r'$p$'
 cbar.set_label(cbarlabel, fontsize=20)
+
+
 
 params = {
     'V0': 2.186,
@@ -97,32 +103,37 @@ beta_ranges = [600, 1500]
 m_ranges = [50, 400]
 for i, beta in enumerate(beta_ranges):
     color = colormap(normalize(p_ranges[i]))
-    params['m'] = m_ranges[i]
     params['beta'] = beta
+    params['m'] = m_ranges[i]
     c = MultiFieldDarkEnergy(params=params, N_min = 0, N_max = 10, gamma=1)
     c.run_background_eq_of_motion()
 
     H = c.get_H()
+    # Today is when H=H_0 (which is one in unites of H_0)
     today_i = np.absolute(H-1).argmin()
     print('Time today:', c.sol['t'][today_i])
     N = c.sol['t']-c.sol['t'][today_i]
 
-    br = c.sol['y'][3] * params['beta']
-    M_eff_s, cs_s = c.get_M_eff_squared()
+    M_eff_s_over_a_s, cs_s = c.get_M_eff_squared()
     H = c.get_H()
     a = np.exp(N)
-    axs[1].plot(N, cs_s, color=color)
-    axs[1].plot(N, (1-br)/(1+br), '--', color=color)
-axs[1].set_xlim([-2, 2])
+    M_eff_s = M_eff_s_over_a_s * a**2
+    upper_bound = H0_in_mpc_inv * h * np.sqrt(M_eff_s/ cs_s) 
+    lower_bound = H0_in_mpc_inv * h* H * a 
+    axs[1].plot(N, upper_bound, c=color)
+    axs[1].plot(N, lower_bound, '--', c=color)
+    axs[1].fill_between(N, upper_bound / 7, lower_bound * 7, where=upper_bound / 7 > lower_bound * 7, alpha=0.4, color=color)
+axs[1].set_xlim([-3, 2])
+axs[1].set_yscale('log')
 axs[1].set_xlabel(r'$N$')
-axs[1].set_ylabel(r'$c_s^2$')
-axs[1].legend(['Numerical', 'Approximation'])
+axs[1].set_ylabel(r'$k \; [h\mathrm{Mpc}^{-1}]$')
+axs[1].legend([r'$|M_{\textrm{eff}} /c_s|$', r'$H a$'])
 axs[1].set_title(r'$f(r)=e^{\beta r}$')
-axs[1].hlines(0, -3, 2, color='k', alpha=0.8)
+axs[1].hlines(0, -8, 2, color='k', alpha=0.8)
 axs[1].grid()
+fig.set_size_inches(7, 7)
 
 colormap = ListedColormap(sns.cubehelix_palette(10, reverse = False).as_hex())
-#normalize = mcolors.Normalize(vmin=-2000, vmax=7000)
 normalize = mcolors.Normalize(vmin=300, vmax=1800)
 s_map = cm.ScalarMappable(norm=normalize, cmap=colormap)
 s_map.set_array(beta_ranges)
@@ -136,6 +147,5 @@ cbar = fig.colorbar(s_map, ax=axs[1], ticks = beta_ranges, boundaries = boundari
 cbarlabel = r'$\beta$'
 cbar.set_label(cbarlabel, fontsize=20)
 
-fig.set_size_inches(7, 7)
 
 plt.show()

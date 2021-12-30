@@ -19,15 +19,17 @@ plt.rc('text', usetex=True)
 
 params = {
     'V0': 2.186,
-    'm': 30,
+    'm': 50,
     'r0': 7*1e-4,
-    'alpha': 1e-3,
+    'alpha': 2*1e-3,
     'x_p_init': 0.0,
     'x_t_init': 0.0,
     'y_1_init': 1e-5,
     'r_init_multiplier': 1,
     'p': 2,
-    'cosmo_constant': 0
+    'cosmo_constant': 0,
+    'potential': 'spinning',
+    'metric': 'r_p'
 }
 
 def make_arrows(w_list, omega_list, params):
@@ -42,7 +44,7 @@ def make_arrows(w_list, omega_list, params):
             params['y_1_init'] = sqrt(omega*(1-w)/2)
             #params['x_t_init'] = sqrt(omega*(1+w)/2)#/sqrt(2)
             params['x_p_init'] = sqrt(omega*(1+w)/2)#/sqrt(2)
-            c = MultiFieldDarkEnergy(metric='r_p', potential='exp_spinning', params=params, N_min = 0, N_max = 2, gamma=1)
+            c = MultiFieldDarkEnergy(params=params, N_min = 0, N_max = 2, gamma=1)
 
             c.run_background_eq_of_motion()
             #c.x_y_phase_plot()
@@ -57,18 +59,19 @@ def make_arrows(w_list, omega_list, params):
 
 num = 9
 
-red_box_x = np.array([[-1.005, -0.925], [-1.01, -0.79]])
-red_box_y = np.array([[0.925, 1.005] , [0.79, 1.01]])
+red_box_x = np.array([[-1.005, -0.925], [-1.01, -0.74]])
+red_box_y = np.array([[0.925, 1.005] , [0.74, 1.01]])
 
-w_low = [-0.93, -0.8]
+w_low = [-0.93, -0.75]
 
+m_range = [50, 30]
 p_range = [2, 3]
 fig, axs = plt.subplots(2, 2)
 for i, p in enumerate(p_range):
     params['p'] = p
-
-    r_eq = (p*params['alpha']**2 * params['V0']/(6*params['m']**2))**(1/(p+2))
-    w_eq = -1 + 2/(1 + p/2 + p*params['V0'] / (r_eq**2* params['m']**2))
+    params['m'] = m_range[i]
+    r_eq = (p*params['alpha']**2 /(6*params['m']**2 * params['V0']))**(1/(p+2))
+    w_eq = -1 + 2/(1 + p/2 + p*params['V0']/ (r_eq**2* params['m']**2))
 
     w_list = np.linspace(start=-0.999, stop=w_low[i], num=num)
     omega_list = np.linspace(start=np.abs(w_low[i]), stop=0.9999, num=num)

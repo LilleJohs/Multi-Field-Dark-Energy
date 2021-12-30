@@ -18,7 +18,6 @@ class MultiFieldDarkEnergy():
                 'y_1_init': 1e-6,
                 'r_init_multiplier': 1,
                 'p': 2,
-                'f0': 1,
                 'beta': 1,
                 'potential': 'spinning',
                 'metric': 'r_p'
@@ -35,7 +34,11 @@ class MultiFieldDarkEnergy():
             if self.params['metric'] == 'exp':
                 phi = self.params['r_init']
             else:
-                phi = self.params['r0'] * self.params['r_init_multiplier']
+                if 'r_init' in self.params and self.params['r0'] == 0:
+                    print('hei')
+                    phi = self.params['r_init']
+                else:
+                    phi = self.params['r0'] * self.params['r_init_multiplier']
             theta = 0
             x_p = self.params['x_p_init']
             y_1 = self.params['y_1_init']
@@ -58,20 +61,8 @@ class MultiFieldDarkEnergy():
             V = self.params['V0'] - self.params['alpha']*theta + 0.5*self.params['m']**2 * (phi-self.params['r0'])**2
             V_phi = self.params['m']**2 * (phi-self.params['r0'])
             V_theta = - self.params['alpha']
-        elif self.params['potential'] == 'exp':
-            a = self.params['a']
-            b = self.params['b']
-            V = exp(a*phi + b*theta)
-            V_phi = a*V
-            V_theta = b*V
-        elif self.params['potential'] == 'exp_lin':
-            a = self.params['a']
-            b = self.params['b']
-            V = exp(a*phi) + exp(b*theta)
-            V_phi = a*exp(a*phi)
-            V_theta = b*exp(b*theta)
         elif self.params['potential'] == 'exp_spinning':
-            V = self.params['V0']*exp(-self.params['alpha']*theta) + 0.5*self.params['m']**2 * (phi - self.params['r0'])**2 + self.params['cosmo_constant']
+            V = self.params['V0']*exp(-self.params['alpha']*theta) + 0.5*self.params['m']**2 * (phi - self.params['r0'])**2
             V_phi = self.params['m']**2 * (phi - self.params['r0'])
             V_theta = - self.params['alpha']*self.params['V0']*exp(-self.params['alpha']*theta)
         return V, V_phi, V_theta
@@ -86,7 +77,7 @@ class MultiFieldDarkEnergy():
         elif self.params['metric'] == 'r_p':
             return np.abs(phi)**self.params['p'],  self.params['p'] *np.abs(phi)**(self.params['p']-1)
         elif self.params['metric'] == 'exp':
-            return self.params['f0']*np.exp(self.params['beta']*phi), self.params['f0']*self.params['beta']*np.exp(self.params['beta']*phi)
+            return np.exp(self.params['beta']*phi), self.params['beta']*np.exp(self.params['beta']*phi)
 
     def get_field_ricci(self, phi):
         if self.params['metric'] == 'squared':
@@ -124,7 +115,7 @@ class MultiFieldDarkEnergy():
         return dydt
 
     def run_background_eq_of_motion(self):
-        sol = solve_ivp(fun = self.background, t_span = (self.N_min, self.N_max), y0 = self.y0, rtol=1.e-10, atol=1.e-10)
+        sol = solve_ivp(fun = self.background, t_span = (self.N_min, self.N_max), y0 = self.y0, rtol=1.e-13, atol=1.e-13)
         self.sol = sol
 
     def get_de_sitter_bound(self):
@@ -179,10 +170,10 @@ class MultiFieldDarkEnergy():
 
         Vnn, omega = self.get_turning_rate()
         ricci = self.get_field_ricci(phi)
-        M_eff_squared = (Vnn - omega**2 + ricci * dot_phi_squared/2)
+        M_eff_squared_over_a_s = (Vnn - omega**2 + ricci * dot_phi_squared/2)
         #cs_s = 1/(1+4*omega**2/M_eff_squared)
 
-        Vnn_approx = self.params['m']**2 / f**2 * (1-(phi-self.params['r0'])*f_r/f)
+        #Vnn_approx = self.params['m']**2 / f**2 * (1-(phi-self.params['r0'])*f_r/f)
 
         '''plt.figure()
         #plt.plot(self.sol['t']-8, omega**2, label='Omega**2')
@@ -198,8 +189,8 @@ class MultiFieldDarkEnergy():
         plt.plot(self.sol['t']-8, self.params['r0']*np.ones(len(phi)), label=r'$r_i$')
         plt.plot(self.sol['t']-8, phi*dot_theta, label=r'$r \dot{\theta}$')
         plt.legend()'''
-        cs_s = M_eff_squared/(M_eff_squared+4*omega**2)
-        return M_eff_squared, cs_s
+        cs_s = M_eff_squared_over_a_s/(M_eff_squared_over_a_s+4*omega**2)
+        return M_eff_squared_over_a_s, cs_s
 
     def get_turning_rate(self):
         x_p = self.sol['y'][0]
@@ -312,7 +303,7 @@ class MultiFieldDarkEnergy():
 
         _, axes = plt.subplots(nrows=1, ncols=2, figsize=(10, 3))
         if self.params['metric'] == 'r_p':
-            r_eq = (self.params['p'] * self.params['alpha'] ** 2 * self.params['V0'] * exp(-self.params['alpha']*theta) / (6*self.params['m']**2) ) ** (1/(self.params['p']+2))
+            r_eq = (self.params['p'] * self.params['alpha'] ** 2 / (6*self.params['m']**2 * (self.params['V0'] -self.params['alpha'] * theta)) ) ** (1/(self.params['p']+2))
             axes[0].plot(N, r_eq, label=r'$r_{eq}$')
         #r_i = (self.params['p']*self.params['alpha']**2*self.params['V0']*exp(-self.params['alpha']*theta)/(6*self.params['m']**2))**(1/(self.params['p']+2))
         axes[0].plot(N, phi, label=r'$r$')
@@ -351,6 +342,11 @@ class MultiFieldDarkEnergy():
         plt.vlines(N_now, -1000, 1500, 'r')
         plt.legend()
 
+        if self.params['metric'] == 'exp':
+            plt.figure()
+            plt.plot(N, phi * self.params['beta'], label=r"$\beta r$")
+            plt.legend()
+            
         plt.figure()
         plt.plot(N, 1/(1+4*omega**2/M_eff_squared), label='c_s^2')
         plt.legend()
@@ -368,14 +364,10 @@ class MultiFieldDarkEnergy():
         plt.legend()
         #plt.yscale('log')
 
+        omega = x_p**2 + x_t**2 + y_1**2
         plt.figure()
-        plt.plot(N, V, label='V')
-        plt.plot(N, phi * np.exp(theta * self.params['alpha']), label=r'$r e^{\theta \alpha}$')
+        plt.plot(w, omega, label=r'$w, \Omega$')
         plt.legend()
-        plt.figure()
-        plt.plot(N, np.log(1/(1.18*10**(-61)*H)), label='log(M/H)')
-        plt.legend()
-        #plt.yscale('log')
         plt.show()
 
        
