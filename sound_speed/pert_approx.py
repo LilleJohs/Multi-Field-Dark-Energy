@@ -4,6 +4,7 @@ sys.path.append("..")
 from stability_class import MultiFieldDarkEnergy
 import matplotlib.pyplot as plt
 import numpy as np
+from numpy import sqrt
 from matplotlib.colors import ListedColormap
 import seaborn as sns
 import matplotlib.colors as mcolors
@@ -63,7 +64,7 @@ for i, p in enumerate(p_ranges):
     lower_bound = H0_in_mpc_inv * h * H * a
     axs[0].plot(N, upper_bound, c=color)
     axs[0].plot(N, lower_bound, '--', c=color)
-    axs[0].fill_between(N, upper_bound / 7, lower_bound * 7, where=upper_bound / 7 > lower_bound * 7, alpha=0.4, color=color)
+    axs[0].fill_between(N, upper_bound / sqrt(50), lower_bound * sqrt(50), where=upper_bound / sqrt(50) > lower_bound * sqrt(50), alpha=0.4, color=color)
 axs[0].set_yscale('log')
 axs[0].set_xlim([-3, 2])
 axs[0].set_ylabel(r'$k \; [h\mathrm{Mpc}^{-1}]$')

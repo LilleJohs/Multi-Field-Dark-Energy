@@ -59,15 +59,16 @@ for i, p in enumerate(p_ranges):
     M_eff_s, cs_s = c.get_M_eff_squared()
     H = c.get_H()
     r = c.sol['y'][3]
-    cs_approx = (2-p+params['r0']/r * (p-1)) / (2+p-params['r0']/r * (p+1))
     a = np.exp(N)
     axs[0].plot(N, cs_s, color=color)
-    axs[0].plot(N, cs_approx, '--', color=color)
+
+    r_eq_over_r0 = c.solve_accurate_r_eq() / c.params['r0'] * np.ones(len(N))
+    axs[0].plot(N, (2-p + (p-1)/r_eq_over_r0)/(2+p-(p+1)/r_eq_over_r0), '--', color=color)
 axs[0].set_ylabel(r'$c_s^2$')
-axs[0].legend(['Numerical', 'Approximation'])
 axs[0].set_title(r'$f(r)=r^p$')
 axs[0].hlines(0, -2, 2, color='k', alpha=0.8)
 axs[0].grid()
+axs[0].set_ylim([-0.5, 1.1])
 s_map = cm.ScalarMappable(norm=normalize, cmap=colormap)
 s_map.set_array(p_ranges)
 
@@ -107,19 +108,21 @@ for i, beta in enumerate(beta_ranges):
     print('Time today:', c.sol['t'][today_i])
     N = c.sol['t']-c.sol['t'][today_i]
 
-    br = c.sol['y'][3] * params['beta']
     M_eff_s, cs_s = c.get_M_eff_squared()
     H = c.get_H()
     a = np.exp(N)
     axs[1].plot(N, cs_s, color=color)
+
+    br = c.solve_accurate_r_eq() * np.ones(len(N))
+    print(beta, c.solve_accurate_r_eq())
     axs[1].plot(N, (1-br)/(1+br), '--', color=color)
 axs[1].set_xlim([-2, 2])
 axs[1].set_xlabel(r'$N$')
 axs[1].set_ylabel(r'$c_s^2$')
-axs[1].legend(['Numerical', 'Approximation'])
 axs[1].set_title(r'$f(r)=e^{\beta r}$')
 axs[1].hlines(0, -3, 2, color='k', alpha=0.8)
 axs[1].grid()
+axs[1].set_ylim([-0.5, 1.1])
 
 colormap = ListedColormap(sns.cubehelix_palette(10, reverse = False).as_hex())
 #normalize = mcolors.Normalize(vmin=-2000, vmax=7000)

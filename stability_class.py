@@ -2,6 +2,7 @@ import numpy as np
 from numpy import sqrt, exp, cos, sin
 from scipy.integrate import solve_ivp
 import matplotlib.pyplot as plt
+import scipy.optimize
 
 class MultiFieldDarkEnergy():
     def __init__(self, N_min = 0, N_max = 2, params=None, gamma=1, potential='exp', metric='squared'):
@@ -61,10 +62,10 @@ class MultiFieldDarkEnergy():
             V = self.params['V0'] - self.params['alpha']*theta + 0.5*self.params['m']**2 * (phi-self.params['r0'])**2
             V_phi = self.params['m']**2 * (phi-self.params['r0'])
             V_theta = - self.params['alpha']
-        elif self.params['potential'] == 'exp_spinning':
-            V = self.params['V0']*exp(-self.params['alpha']*theta) + 0.5*self.params['m']**2 * (phi - self.params['r0'])**2
-            V_phi = self.params['m']**2 * (phi - self.params['r0'])
-            V_theta = - self.params['alpha']*self.params['V0']*exp(-self.params['alpha']*theta)
+        #elif self.params['potential'] == 'exp_spinning':
+        #    V = self.params['V0']*exp(-self.params['alpha']*theta) + 0.5*self.params['m']**2 * (phi - self.params['r0'])**2
+        #    V_phi = self.params['m']**2 * (phi - self.params['r0'])
+        #    V_theta = - self.params['alpha']*self.params['V0']*exp(-self.params['alpha']*theta)
         return V, V_phi, V_theta
 
     def f_and_diff(self, phi):
@@ -132,6 +133,20 @@ class MultiFieldDarkEnergy():
         y_1 = self.sol['y'][2]
         phi_squared = x_p**2 + x_t**2
         return (phi_squared - y_1**2) / (phi_squared + y_1**2)
+
+    def F(self, x):
+        r_0 = self.params['r0']
+        alpha = self.params['alpha']
+        V_0 = self.params['V0']
+        m = self.params['m']
+        f, f_r = self.f_and_diff(x)
+        if self.params['metric'] == 'r_p':
+            return (x-r_0)**3 + 2/m**2 * V_0 * (x-r_0) - alpha**2/(3*m**4) * f_r/f**2
+        elif self.params['metric'] == 'exp' and self.params['r0'] == 0:
+            beta = self.params['beta']
+            return x**3 + 2 * beta**2/m**2 * V_0 * x - alpha**2 * beta**4/(3*m**4) * exp(-x)
+    def solve_accurate_r_eq(self):
+        return scipy.optimize.broyden1(self.F, 0.1, f_tol=1e-10)
 
     def get_omega_phi(self):
         x_p = self.sol['y'][0]
@@ -304,7 +319,10 @@ class MultiFieldDarkEnergy():
         _, axes = plt.subplots(nrows=1, ncols=2, figsize=(10, 3))
         if self.params['metric'] == 'r_p':
             r_eq = (self.params['p'] * self.params['alpha'] ** 2 / (6*self.params['m']**2 * (self.params['V0'] -self.params['alpha'] * theta)) ) ** (1/(self.params['p']+2))
-            axes[0].plot(N, r_eq, label=r'$r_{eq}$')
+            axes[0].plot(N, r_eq, label=r'$r_{eq_bad}$')
+        r_eq = self.solve_accurate_r_eq() * np.ones(len(N))
+        if self.params['metric'] == 'exp': r_eq /= self.params['beta']
+        axes[0].plot(N, r_eq, label=r'$r_{eq}$')
         #r_i = (self.params['p']*self.params['alpha']**2*self.params['V0']*exp(-self.params['alpha']*theta)/(6*self.params['m']**2))**(1/(self.params['p']+2))
         axes[0].plot(N, phi, label=r'$r$')
         #axes[0].plot(N, np.abs(dot_phi/H), label=r"$r'$")

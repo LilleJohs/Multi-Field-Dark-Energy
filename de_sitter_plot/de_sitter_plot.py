@@ -54,7 +54,7 @@ params = [{
 }]
 
 r_lim = [-5, 1]
-title_l = [r'$f(r)=r^2$', r'$f(r)=e^{\beta r}$']
+title_l = [r'$f(r)=r^p$', r'$f(r)=e^{\beta r}$']
 
 r = np.logspace(r_lim[0], r_lim[1], num=100)
 theta_times_alpha_l = np.array([[0, 1, 2], [0, 1, 2]])

@@ -17,6 +17,8 @@ plt.rc('axes', titlesize=16, labelsize=17)
 plt.rc('lines', linewidth=2, markersize=6)
 plt.rc('legend', fontsize=15)
 plt.rc('text', usetex=True)
+latexparams= {'text.latex.preamble' : [r'\usepackage{amsmath}']}
+plt.rcParams.update(latexparams)
 
 params = {
     'V0': 2.186,
@@ -66,7 +68,7 @@ for m, p in enumerate(p_range):
             if cur > 1:
                 delta_phi_n = j
                 break
-        axs[int(np.floor(m/2)), m%2].plot(w, omega, label=r"$r_i = {{{}}}r_0$".format(x) +'\n dSB: '+"{:.2f}".format(min(c.get_de_sitter_bound())), color=color)
+        axs[int(np.floor(m/2)), m%2].plot(w, omega, label=r"$r^{\text{ini}}$" + r"$ = {{{}}}r_0$".format(x) +'\n dSB: '+"{:.2f}".format(min(c.get_de_sitter_bound())), color=color)
         if delta_phi_n>0: axs[int(np.floor(m/2)), m%2].plot(w[delta_phi_n], omega[delta_phi_n], 'go', color=color, linewidth=5, markersize=14)
  
     #cur_uni = Ellipse(xy=(-1, 0.7), width=0.065, height=0.02, 
